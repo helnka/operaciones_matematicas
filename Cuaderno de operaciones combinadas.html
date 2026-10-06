@@ -1,0 +1,351 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cuaderno de operaciones combinadas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Atkinson+Hyperlegible+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: una sola columna tipo hoja de cuaderno cuadriculado; la operación es lo más grande de la página. */
+:root{
+  --bg:#eef2f8; --card:#fbfcfe; --grid:#d3deee; --ink:#1d3a8f; --fg:#1a2130; --muted:#566076;
+  --line:#c3cee0; --ok:#17734a; --ok-bg:#dff3e8; --bad:#b3311f; --bad-bg:#fbe4df;
+  --hl:#ffe45c; --hl-fg:#1a2130; --btn-fg:#ffffff;
+  --ui:"Lexend",system-ui,"Segoe UI",sans-serif;
+  --math:"Atkinson Hyperlegible Mono","DejaVu Sans Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10151f; --card:#18202e; --grid:#27334a; --ink:#a9c1ff; --fg:#e9edf5; --muted:#a3adc2;
+  --line:#34425c; --ok:#6fd6a3; --ok-bg:#143526; --bad:#ff9a8a; --bad-bg:#40201b;
+  --hl:#8a7200; --hl-fg:#ffffff; --btn-fg:#10151f; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#10151f; --card:#18202e; --grid:#27334a; --ink:#a9c1ff; --fg:#e9edf5; --muted:#a3adc2;
+  --line:#34425c; --ok:#6fd6a3; --ok-bg:#143526; --bad:#ff9a8a; --bad-bg:#40201b;
+  --hl:#8a7200; --hl-fg:#ffffff; --btn-fg:#10151f; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:1.0625rem;line-height:1.55;
+  padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:46rem;margin-inline:auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:1.6rem;line-height:1.2;margin:0;font-weight:700;text-wrap:balance}
+h2{font-size:1rem;margin:0;font-weight:600}
+p{margin:0}
+.sub{color:var(--muted)}
+header{display:flex;flex-direction:column;gap:4px}
+
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.2rem,1fr));gap:8px}
+.levels button{display:flex;flex-direction:column;gap:2px;text-align:left;padding:10px 12px;min-width:0;
+  background:var(--card);color:var(--fg);border:2px solid var(--line);border-radius:10px;font:inherit;cursor:pointer}
+.levels button b{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.levels button span{font-size:.95rem;font-weight:500;line-height:1.3}
+.levels button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.levels button[aria-pressed="true"] b{color:var(--ink)}
+
+.sheet{background-color:var(--card);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;border:1px solid var(--line);border-radius:6px;
+  padding:26px 20px;display:flex;flex-direction:column;gap:22px}
+.expr{font-family:var(--math);font-weight:700;color:var(--ink);font-size:clamp(1.55rem,6.2vw,2.7rem);
+  line-height:1.6;text-align:center;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;min-height:1.6em}
+sup{font-size:.58em;line-height:0}
+mark{background:var(--hl);color:var(--hl-fg);border-radius:4px;padding:.05em .15em}
+
+form{display:flex;flex-wrap:wrap;gap:10px;align-items:end;justify-content:center}
+label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;font-weight:500;color:var(--muted)}
+input[type=text]{font-family:var(--math);font-size:1.5rem;font-weight:700;width:9rem;max-width:100%;padding:8px 12px;
+  background:var(--card);color:var(--fg);border:2px solid var(--line);border-radius:8px;text-align:center}
+.btn{font:inherit;font-weight:600;padding:12px 18px;border-radius:8px;border:2px solid var(--ink);cursor:pointer;
+  background:var(--card);color:var(--ink)}
+.btn.main{background:var(--ink);color:var(--btn-fg)}
+.btn:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+.msg{padding:12px 14px;border-radius:8px;font-weight:500;text-align:center;border:2px solid transparent}
+.msg.ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+.msg.bad{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.msg.info{background:var(--card);color:var(--fg);border-color:var(--line)}
+
+.steps{display:flex;flex-direction:column;gap:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:6px;padding:16px}
+.step{display:flex;flex-direction:column;gap:2px}
+.step .line{font-family:var(--math);font-weight:500;font-size:clamp(1.1rem,4.4vw,1.45rem);color:var(--ink);
+  line-height:1.7;overflow-wrap:anywhere}
+.step .why{font-size:.95rem;color:var(--muted)}
+.step.final .line{font-weight:700}
+
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:20px}
+.info > div{display:flex;flex-direction:column;gap:8px;min-width:0}
+ol{margin:0;padding-left:1.4rem;display:flex;flex-direction:column;gap:4px}
+.count{font-family:var(--math);font-weight:700;color:var(--ink);font-size:1.2rem}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts .btn{padding:6px 12px;font-family:var(--math)}
+.opts .btn[aria-pressed="true"]{background:var(--ink);color:var(--btn-fg)}
+@media (prefers-reduced-motion:no-preference){ .msg,.step{animation:in .2s ease-out} }
+@keyframes in{from{transform:translateY(4px)}to{transform:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Cuaderno de operaciones combinadas</h1>
+    <p class="sub">Copia la operación, resuélvela en tu cuaderno y comprueba aquí el resultado.</p>
+  </header>
+
+  <div class="levels" id="levels" role="group" aria-label="Nivel"></div>
+
+  <section class="sheet" aria-label="Operación">
+    <div class="expr" id="expr" aria-live="polite"></div>
+    <form id="form" autocomplete="off">
+      <label for="ans">Mi resultado
+        <input type="text" id="ans" inputmode="text" autocomplete="off" aria-describedby="msg">
+      </label>
+      <button class="btn main" type="submit" id="check">Comprobar</button>
+    </form>
+    <div id="msg" role="status" aria-live="polite" hidden></div>
+    <div class="row">
+      <button class="btn" type="button" id="hint">¿Por dónde empiezo?</button>
+      <button class="btn" type="button" id="next">Ver un paso</button>
+      <button class="btn" type="button" id="new">Otra operación</button>
+    </div>
+  </section>
+
+  <section class="steps" id="steps" aria-label="Pasos" hidden></section>
+
+  <section class="info">
+    <div>
+      <h2>Orden de las operaciones</h2>
+      <ol>
+        <li>Paréntesis y corchetes, de dentro hacia fuera.</li>
+        <li>Potencias.</li>
+        <li>Multiplicaciones y divisiones, de izquierda a derecha.</li>
+        <li>Sumas y restas, de izquierda a derecha.</li>
+      </ol>
+    </div>
+    <div>
+      <h2>En esta sesión</h2>
+      <p><span class="count" id="cDone">0</span> resueltas · <span class="count" id="cFirst">0</span> a la primera</p>
+      <h2>Símbolos</h2>
+      <div class="opts" role="group" aria-label="Símbolos de multiplicar y dividir">
+        <button class="btn" type="button" id="symA" aria-pressed="true">·  :</button>
+        <button class="btn" type="button" id="symB" aria-pressed="false">×  ÷</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const LEVELS={
+  1:{name:'Sin paréntesis',n:[3,3],ops:['+','-','*'],neg:0,pow:false,max:100},
+  2:{name:'Con divisiones',n:[4,4],ops:['+','-','*','/'],neg:0,pow:false,max:100},
+  3:{name:'Con paréntesis',n:[4,5],ops:['+','-','*','/'],neg:0,pow:false,max:120},
+  4:{name:'Números negativos',n:[4,5],ops:['+','-','*','/'],neg:.4,pow:false,max:120},
+  5:{name:'Potencias y corchetes',n:[4,5],ops:['+','-','*','/'],neg:.15,pow:true,max:150}
+};
+let SYM={'*':'·','/':':'};
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[R(0,a.length-1)];
+const cls=n=>n.t==='o'?('+-'.includes(n.op)?1:2):n.t==='p'?3:4;
+const fmt=v=>v<0?'−'+(-v):''+v;
+
+function leaf(L){return {t:'n',v:Math.random()<L.neg?-R(2,9):R(2,12)};}
+function build(n,L){
+  if(n===1){
+    if(L.pow&&Math.random()<.3) return {t:'p',b:{t:'n',v:Math.random()<L.neg?-R(2,4):R(2,5)},e:pick([2,2,3])};
+    return leaf(L);
+  }
+  const op=pick(L.ops);
+  let node;
+  if(op==='/'){
+    const d=(Math.random()<L.neg?-1:1)*R(2,9);
+    const l=n===2?{t:'n',v:d*R(2,9)*(Math.random()<L.neg?-1:1)}:build(n-1,L);
+    node={t:'o',op,l,r:{t:'n',v:d}};
+  }else{
+    const k=R(1,n-1);
+    node={t:'o',op,l:build(k,L),r:build(n-k,L)};
+  }
+  if(L.pow&&n<=3&&Math.random()<.25) node={t:'p',b:node,e:2};
+  return node;
+}
+function ev(nd,L){
+  if(nd.t==='n') return nd.v;
+  if(nd.t==='p'){
+    const b=ev(nd.b,L),v=Math.pow(b,nd.e);
+    if(Math.abs(b)<2||Math.abs(b)>10||Math.abs(v)>125) throw 0;
+    if(!L.neg&&v<0) throw 0;
+    return v;
+  }
+  const a=ev(nd.l,L),b=ev(nd.r,L);let v;
+  if(nd.op==='+') v=a+b;
+  else if(nd.op==='-') v=a-b;
+  else if(nd.op==='*'){
+    const x=Math.abs(a),y=Math.abs(b);
+    if(x<2||y<2||x>12||y>12||(x>10&&y>10)) throw 0;
+    v=a*b;
+  }else{
+    if(b===0||Math.abs(b)===1||a===0||a%b!==0) throw 0;
+    v=a/b;
+  }
+  if(Math.abs(v)>L.max) throw 0;
+  if(!L.neg&&v<0) throw 0;
+  return v;
+}
+function shapeOk(nd){
+  if(nd.t==='n') return true;
+  if(nd.t==='p') return shapeOk(nd.b);
+  if(nd.op==='+'&&cls(nd.r)===1) return false;
+  if(nd.op==='*'&&cls(nd.r)===2) return false;
+  return shapeOk(nd.l)&&shapeOk(nd.r);
+}
+function wrap(c,p,side){
+  if(c.t!=='o') return false;
+  if(p.t==='p') return true;
+  const cc=cls(c);
+  if(p.op==='+') return false;
+  if(p.op==='-') return side==='r'&&cc===1;
+  if(p.op==='*') return cc===1;
+  return side==='r'||cc===1;
+}
+function hasGrp(n){
+  if(n.t==='n') return false;
+  if(n.t==='p') return n.b.t==='o';
+  return wrap(n.l,n,'l')||wrap(n.r,n,'r')||hasGrp(n.l)||hasGrp(n.r);
+}
+function grp(n,target){
+  const inner=html(n,target,true);
+  return hasGrp(n)?'['+inner+']':'('+inner+')';
+}
+function html(nd,target,start){
+  let out;
+  if(nd.t==='n'){ out=fmt(nd.v); return nd.v<0&&!start?'('+out+')':out; }
+  if(nd.t==='p'){
+    const b=nd.b.t==='o'?grp(nd.b,target):(nd.b.v<0?'('+fmt(nd.b.v)+')':fmt(nd.b.v));
+    out=b+'<sup>'+nd.e+'</sup>';
+  }else{
+    const l=wrap(nd.l,nd,'l')?grp(nd.l,target):html(nd.l,target,start);
+    const r=wrap(nd.r,nd,'r')?grp(nd.r,target):html(nd.r,target,false);
+    const s=nd.op==='+'?'+':nd.op==='-'?'−':SYM[nd.op];
+    out=l+' '+s+' '+r;
+  }
+  return nd===target?'<mark>'+out+'</mark>':out;
+}
+function scan(nd,d,acc){
+  if(nd.t==='n'){ if(nd.v<0) acc.negs++; return acc; }
+  if(nd.t==='p'){
+    acc.pows++;
+    if(nd.b.t==='o'){acc.groups++;acc.max=Math.max(acc.max,d+1);scan(nd.b,d+1,acc);}
+    else{scan(nd.b,d,acc);acc.c.push({nd,d,k:3});}
+    return acc;
+  }
+  acc['k'+cls(nd)]++;
+  for(const side of ['l','r']){
+    const c=nd[side],w=wrap(c,nd,side);
+    if(w){acc.groups++;acc.max=Math.max(acc.max,d+1);}
+    scan(c,d+(w?1:0),acc);
+  }
+  if(nd.l.t==='n'&&nd.r.t==='n') acc.c.push({nd,d,k:cls(nd)});
+  return acc;
+}
+const newAcc=()=>({negs:0,pows:0,groups:0,max:0,k1:0,k2:0,c:[]});
+function nextOp(tree){
+  const c=scan(tree,0,newAcc()).c;
+  c.sort((a,b)=>b.d-a.d||b.k-a.k);
+  return c[0];
+}
+function make(level){
+  const L=LEVELS[level];
+  for(let i=0;i<20000;i++){
+    const tree=build(R(L.n[0],L.n[1]),L);
+    let v;
+    try{v=ev(tree,L);}catch(e){continue;}
+    if(!shapeOk(tree)) continue;
+    const s=scan(tree,0,newAcc());
+    if(!s.k1||!(s.k2||s.pows)) continue;
+    if(level<=2&&s.groups) continue;
+    if(level===3&&(s.groups<1||s.max!==1)) continue;
+    if(level===4&&(s.negs<1||s.max>1)) continue;
+    if(level===5&&(s.pows<1||s.groups<1||s.max>2)) continue;
+    return {tree,v};
+  }
+  const tree={t:'o',op:'+',l:{t:'n',v:4},r:{t:'o',op:'*',l:{t:'n',v:3},r:{t:'n',v:5}}};
+  return {tree,v:19};
+}
+const NAMES={'+':'Suma','-':'Resta','*':'Multiplicación','/':'División'};
+function solve(tree){
+  const t=JSON.parse(JSON.stringify(tree)),L={neg:1,max:1e9},out=[];
+  while(t.t!=='n'){
+    const c=nextOp(t),nd=c.nd;
+    const line=html(t,nd,true);
+    const sub=html(nd,null,true).replace(/<sup>(\d)<\/sup>/,'<sup>$1</sup>');
+    const v=nd.t==='p'?Math.pow(nd.b.v,nd.e):(nd.op==='+'?nd.l.v+nd.r.v:nd.op==='-'?nd.l.v-nd.r.v:nd.op==='*'?nd.l.v*nd.r.v:nd.l.v/nd.r.v);
+    const what=(nd.t==='p'?'Potencia':NAMES[nd.op])+(c.d>0?' (dentro del paréntesis)':'');
+    out.push({line,why:what+': '+sub+' = '+fmt(v)});
+    for(const k of Object.keys(nd)) delete nd[k];
+    nd.t='n';nd.v=v;
+  }
+  return {steps:out,result:t.v};
+}
+
+if(typeof document!=='undefined'){
+  const $=id=>document.getElementById(id);
+  let level=1,cur=null,sol=null,shown=0,tries=0,solved=false,done=0,first=0,hinted=false;
+  try{const s=+localStorage.getItem('oc-nivel');if(LEVELS[s])level=s;}catch(e){}
+
+  const lv=$('levels');
+  for(const k of Object.keys(LEVELS)){
+    const b=document.createElement('button');
+    b.type='button';b.id='lv'+k;b.dataset.k=k;
+    b.innerHTML='<b>Nivel '+k+'</b><span>'+LEVELS[k].name+'</span>';
+    b.addEventListener('click',()=>{level=+k;try{localStorage.setItem('oc-nivel',k);}catch(e){}fresh();});
+    lv.appendChild(b);
+  }
+  function msg(kind,text){const m=$('msg');m.className='msg '+kind;m.textContent=text;m.hidden=!text;}
+  function drawExpr(){
+    const t=hinted&&!shown?nextOp(cur.tree).nd:null;
+    $('expr').innerHTML=html(cur.tree,t,true);
+  }
+  function drawSteps(){
+    const box=$('steps');box.hidden=!shown;
+    let h='';
+    for(let i=0;i<shown;i++){
+      const s=sol.steps[i];
+      h+='<div class="step"><div class="line">'+(i?'= ':'')+s.line+'</div><div class="why">'+s.why+'</div></div>';
+    }
+    if(shown===sol.steps.length&&shown) h+='<div class="step final"><div class="line">= '+fmt(sol.result)+'</div><div class="why">Resultado final</div></div>';
+    box.innerHTML=h;
+    $('next').disabled=shown>=sol.steps.length;
+    $('next').textContent=shown?'Ver otro paso':'Ver un paso';
+  }
+  function fresh(){
+    cur=make(level);sol=solve(cur.tree);shown=0;tries=0;solved=false;hinted=false;
+    for(const b of lv.children) b.setAttribute('aria-pressed',b.dataset.k==level);
+    $('ans').value='';$('ans').disabled=false;$('check').disabled=false;$('hint').disabled=false;
+    msg('','');drawExpr();drawSteps();
+  }
+  $('form').addEventListener('submit',e=>{
+    e.preventDefault();
+    if(solved) return;
+    const raw=$('ans').value.replace(/[−–]/g,'-').replace(/\s/g,'');
+    if(!/^-?\d+$/.test(raw)){msg('info','Escribe solo un número entero, por ejemplo 12 o −5.');return;}
+    tries++;
+    if(+raw===cur.v){
+      solved=true;done++;if(tries===1&&!shown)first++;
+      $('cDone').textContent=done;$('cFirst').textContent=first;
+      $('ans').disabled=true;$('check').disabled=true;
+      msg('ok','✓ Correcto. El resultado es '+fmt(cur.v)+'.');
+      $('new').focus();
+    }else{
+      msg('bad','✗ Todavía no coincide. Repasa tu cuaderno línea a línea'+(tries>1?' o pulsa «Ver un paso» para comparar.':'.'));
+      $('ans').select();
+    }
+  });
+  $('hint').addEventListener('click',()=>{hinted=true;drawExpr();msg('info','Empieza por la parte marcada en amarillo.');});
+  $('next').addEventListener('click',()=>{if(shown<sol.steps.length){shown++;drawExpr();drawSteps();}});
+  $('new').addEventListener('click',()=>{fresh();$('ans').focus();});
+  function setSym(a){
+    SYM=a?{'*':'·','/':':'}:{'*':'×','/':'÷'};
+    $('symA').setAttribute('aria-pressed',a);$('symB').setAttribute('aria-pressed',!a);
+    if(cur){sol=solve(cur.tree);drawExpr();drawSteps();}
+  }
+  $('symA').addEventListener('click',()=>setSym(true));
+  $('symB').addEventListener('click',()=>setSym(false));
+  fresh();
+}
+</script>
+
+</body></html>
